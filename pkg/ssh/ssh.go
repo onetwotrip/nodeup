@@ -1,13 +1,12 @@
 package ssh
 
 import (
+	"bytes"
 	"github.com/foxdalas/nodeup/pkg/nodeup_const"
 	"github.com/pkg/sftp"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
-
-	"bytes"
-	"github.com/sirupsen/logrus"
 	"io"
 	"net"
 	"os"
@@ -66,9 +65,6 @@ func (s *Ssh) sshSession() (*ssh.Session, error) {
 	if err != nil {
 		return session, err
 	}
-
-	//defer session.Close()
-
 	return session, err
 }
 
@@ -140,10 +136,4 @@ func (s *Ssh) TransferFile(data []byte, name string, path string) error {
 	s.Log().Debugf("Finished transferring file %s", path+"/"+name)
 
 	return err
-}
-
-func (s *Ssh) assertError(err error) {
-	if err != nil {
-		s.Log().Error(err)
-	}
 }

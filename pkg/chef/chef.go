@@ -141,11 +141,13 @@ func (c *ChefClient) CleanupNode(nodeName string, clientName string) (status boo
 	if c.isClientExist(clientName) {
 		err = c.deleteChefClient(clientName)
 		if err != nil {
+			c.Log().Error(err)
 			status = false
 			return
 		}
 		err = c.deleteChefNode(clientName)
 		if err != nil {
+			c.Log().Error(err)
 			status = false
 			return
 		}
@@ -172,9 +174,4 @@ func (c *ChefClient) isClientExist(clientName string) bool {
 	} else {
 		return true
 	}
-}
-
-func (c *ChefClient) Log() *logrus.Entry {
-	log := c.nodeup.Log().WithField("context", "ssh")
-	return log
 }

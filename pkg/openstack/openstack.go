@@ -1,18 +1,25 @@
 package openstack
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/foxdalas/nodeup/pkg/nodeup_const"
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack"
+	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/hypervisors"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/keypairs"
+	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/migrate"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/networks"
+	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/schedulerhints"
+	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/startstop"
+
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/flavors"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/images"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/servers"
-	"github.com/sirupsen/logrus"
+	"github.com/patrickmn/go-cache"
 	"os"
-	"regexp"
+	"sort"
+	"strings"
 	"time"
 )
 
@@ -23,6 +30,7 @@ func New(nodeup nodeup.NodeUP, key string, keyName string, flavor string) *Opens
 		flavorName: flavor,
 		key:        key,
 		keyName:    keyName,
+		cache:      cache.New(5*time.Minute, 10*time.Minute),
 	}
 
 	var err error
@@ -41,12 +49,6 @@ func New(nodeup nodeup.NodeUP, key string, keyName string, flavor string) *Opens
 	return o
 }
 
-func (o *Openstack) assertError(err error, message string) {
-	if err != nil {
-		o.Log().Fatalf(message+": %s", err)
-	}
-}
-
 func (o *Openstack) getFlavorByName() string {
 	o.Log().Debugf("Searching FlavorID for Flavor name: %s", o.flavorName)
 	flavorID, err := flavors.IDFromName(o.client, o.flavorName)
@@ -63,7 +65,12 @@ func (o *Openstack) getImageByName() string {
 	return imageID
 }
 
-func (o *Openstack) getNetworks() ([]string, error) {
+func (o *Openstack) getNetworkIDs(defineNetworks string) ([]string, error) {
+	//Servers.com networking labels
+	//External - internet_XX.XX.XX.XX/XX
+	//Internal - local_private
+	//Global Internal - global_private
+
 	var networksID []string
 
 	allPages, err := networks.List(o.client).AllPages()
@@ -76,11 +83,17 @@ func (o *Openstack) getNetworks() ([]string, error) {
 		o.Log().Errorf("Extract networks: %s", err)
 		return networksID, err
 	}
-
-	for _, net := range allNetworks {
-		if regexp.MustCompile(`internet`).MatchString(net.Label) {
-			networksID = append(networksID, net.ID)
+	if len(defineNetworks) > 0 {
+		for _, net := range allNetworks {
+			for _, selected := range strings.Split(defineNetworks, ",") {
+				if selected == net.Label {
+					networksID = append(networksID, net.ID)
+				}
+			}
 		}
+	} else {
+		o.Log().Error("Please provide networks")
+		return networksID, errors.New("Networks list not found")
 	}
 	return networksID, err
 }
@@ -133,14 +146,15 @@ func (o *Openstack) createAdminKey() bool {
 	return true
 }
 
-func (o *Openstack) CreateSever(hostname string) (*servers.Server, error) {
+func (o *Openstack) CreateSever(hostname string, group string, networks string, availabilityZone string) (*servers.Server, error) {
+
 	if o.isServerExist(hostname) {
 		o.Log().Fatalf("Server %s already exists", hostname)
 	}
 
 	flavorID := o.getFlavorByName()
 	imageID := o.getImageByName()
-	networksIDs, err := o.getNetworks()
+	networksIDs, err := o.getNetworkIDs(networks)
 	if err != nil {
 		o.Log().Errorf("Error networks: %s", err)
 		return nil, err
@@ -150,13 +164,26 @@ func (o *Openstack) CreateSever(hostname string) (*servers.Server, error) {
 
 	o.createAdminKey()
 
+	var s []servers.Network
+
+	for _, n := range networksIDs {
+		s = append(s, servers.Network{UUID: n})
+	}
+
+	configDrive := true
+
 	serverCreateOpts := servers.CreateOpts{
-		Name:      hostname,
-		FlavorRef: flavorID,
-		ImageRef:  imageID,
-		Networks: []servers.Network{
-			{UUID: networksIDs[0]},
-		},
+		Name:        hostname,
+		FlavorRef:   flavorID,
+		ImageRef:    imageID,
+		Networks:    s,
+		ConfigDrive: &configDrive,
+	}
+
+	// TODO: add auto balancer
+	if len(availabilityZone) > 0 {
+		o.Log().Info("Launching server in availability zone %s", availabilityZone)
+		serverCreateOpts.AvailabilityZone = availabilityZone
 	}
 
 	createOpts := keypairs.CreateOptsExt{
@@ -164,20 +191,41 @@ func (o *Openstack) CreateSever(hostname string) (*servers.Server, error) {
 		KeyName:           o.keyName,
 	}
 
-	server, err := servers.Create(o.client, createOpts).Extract()
-	if err != nil {
-		o.Log().Errorf("Error: creating server: %s", err)
-		return nil, err
+	var server *servers.Server
+
+	if len(group) > 5 {
+		server, err = servers.Create(o.client, schedulerhints.CreateOptsExt{
+			CreateOptsBuilder: createOpts,
+			SchedulerHints: schedulerhints.SchedulerHints{
+				Group: group,
+			},
+		}).Extract()
+		if err != nil {
+			o.Log().Errorf("Error: creating server: %s", err)
+			return nil, err
+		}
+	} else {
+		server, err = servers.Create(o.client, createOpts).Extract()
+		if err != nil {
+			o.Log().Errorf("Error: creating server: %s", err)
+			return nil, err
+		}
 	}
 
-	info := o.getServer(server.ID)
+	info, err := o.GetServer(server.ID)
+	if err != nil {
+		o.Log().Error(err)
+	}
 
 	o.Log().Debugf("Waiting server %s up", info.Name)
 	i := 0
 	status := ""
 	for {
 		time.Sleep(5 * time.Second) //Waiting 5 second before retry getting openstack host status
-		info = o.getServer(server.ID)
+		info, err = o.GetServer(server.ID)
+		if err != nil {
+			o.Log().Error(err)
+		}
 
 		if info.Status == status {
 			i++
@@ -207,9 +255,139 @@ func (o *Openstack) CreateSever(hostname string) (*servers.Server, error) {
 	return info, nil
 }
 
-func (o *Openstack) getServer(sid string) *servers.Server {
-	server, _ := servers.Get(o.client, sid).Extract()
-	return server
+func (o *Openstack) GetServer(sid string) (*servers.Server, error) {
+	server, err := servers.Get(o.client, sid).Extract()
+	if err != nil {
+		o.Log().Error(err)
+		return nil, err
+	}
+	return server, nil
+}
+
+func (o *Openstack) GetServerDetail(sid string) (Server, error) {
+	var server Server
+	err := servers.Get(o.client, sid).ExtractInto(&server)
+	o.Log().Info(servers.Get(o.client, sid).PrettyPrintJSON())
+	if err != nil {
+		o.Log().Error(err)
+		return server, err
+	}
+	return server, nil
+}
+
+func (o *Openstack) GetHypervisors() ([]hypervisors.Hypervisor, error) {
+	allPages, err := hypervisors.List(o.client).AllPages()
+	if err != nil {
+		o.Log().Error(err)
+		return nil, err
+	}
+	allHypervisors, err := hypervisors.ExtractHypervisors(allPages)
+	if err != nil {
+		o.Log().Error(err)
+		return nil, err
+	}
+	return allHypervisors, nil
+}
+
+func (o *Openstack) GetHypervisorInfo(id int) (*hypervisors.Hypervisor, error) {
+	hypervisor, err := hypervisors.Get(o.client, id).Extract()
+	if err != nil {
+		o.Log().Error(err)
+		return nil, err
+	}
+
+	return hypervisor, nil
+}
+
+func (o *Openstack) GetHypervisorStatistics(id int) (*hypervisors.Statistics, error) {
+	hypervisorsStatistics, err := hypervisors.GetStatistics(o.client).Extract()
+	if err != nil {
+		o.Log().Error(err)
+		return nil, err
+	}
+	return hypervisorsStatistics, nil
+}
+
+func (o *Openstack) GetServers() ([]servers.Server, error) {
+	opts := servers.ListOpts{}
+	allPages, err := servers.List(o.client, opts).AllPages()
+	if err != nil {
+		o.Log().Error(err)
+		return nil, err
+	}
+	allServers, err := servers.ExtractServers(allPages)
+	if err != nil {
+		o.Log().Error(err)
+		return nil, err
+	}
+	return allServers, nil
+}
+
+func (o *Openstack) GetFlavors() ([]flavors.Flavor, error) {
+	listOpts := flavors.ListOpts{
+		AccessType: flavors.PrivateAccess,
+	}
+	allPages, err := flavors.ListDetail(o.client, listOpts).AllPages()
+	if err != nil {
+		panic(err)
+	}
+
+	allFlavors, err := flavors.ExtractFlavors(allPages)
+	if err != nil {
+		o.Log().Error(err)
+		return nil, err
+	}
+
+	return allFlavors, nil
+}
+
+func (o *Openstack) GetFlavorInfo(id string) (*flavors.Flavor, error) {
+	flavor, err := flavors.Get(o.client, id).Extract()
+	if err != nil {
+		o.Log().Error(err)
+		return nil, err
+	}
+
+	return flavor, nil
+}
+
+func (o *Openstack) StartServer(id string) error {
+	return startstop.Start(o.client, id).ExtractErr()
+}
+
+func (o *Openstack) StopServer(id string) error {
+	return startstop.Stop(o.client, id).ExtractErr()
+}
+
+// Criteria
+// cpu - CPU Sensitive
+// memory - Memory Sensitive by Free RAM metric
+func (o *Openstack) HypervisorScheduler(criteria string) []hypervisors.Hypervisor {
+
+	hypervisors, err := o.GetHypervisors()
+	if err != nil {
+		o.Log().Fatal(err)
+	}
+	switch criteria {
+	case "cpu":
+		sort.Sort(sortedHypervisorsByvCPU(hypervisors))
+	case "memory":
+		sort.Sort(sortedHypervisorsBMemory(hypervisors))
+	default:
+		return hypervisors
+	}
+	return hypervisors
+}
+
+func (o *Openstack) GetHypervisorWithSensitiveCriteria(criteria string) hypervisors.Hypervisor {
+	var h hypervisors.Hypervisor
+	for _, hypervisor := range o.HypervisorScheduler(criteria) {
+		if hypervisor.Status == "enabled" && hypervisor.State == "up" {
+			h = hypervisor
+		}
+		continue
+	}
+	return h
 }
 
 func (o *Openstack) isServerExist(name string) bool {
@@ -221,11 +399,6 @@ func (o *Openstack) isServerExist(name string) bool {
 		o.Log().Infof("Server with name %s already exist", name)
 		return true
 	}
-}
-
-func (o *Openstack) Log() *logrus.Entry {
-	log := o.nodeup.Log().WithField("context", "openstack")
-	return log
 }
 
 func (o *Openstack) DeleteServer(sid string) error {
@@ -250,4 +423,56 @@ func (o *Openstack) DeleteIfError(id string, err error) bool {
 	} else {
 		return false
 	}
+}
+
+func (o *Openstack) IDFromName(hostname string) (string, error) {
+	count := 0
+	id := ""
+	var servers []servers.Server
+	var err error
+
+	cache, found := o.cache.Get("servers")
+	if found {
+		err = json.Unmarshal(cache.([]byte), &servers)
+		if err != nil {
+			return "", err
+		}
+	} else {
+		servers, err = o.GetServers()
+		if err != nil {
+			return "", err
+		}
+		json, err := json.Marshal(servers)
+		if err != nil {
+			return "", err
+		}
+		o.cache.Set("servers", json, 10*time.Minute)
+	}
+
+	for _, f := range servers {
+		if f.Name == hostname {
+			count++
+			id = f.ID
+		}
+	}
+
+	switch count {
+	case 0:
+		return "", gophercloud.ErrResourceNotFound{Name: hostname, ResourceType: "server"}
+	case 1:
+		return id, nil
+	default:
+		return "", gophercloud.ErrMultipleResourcesFound{Name: hostname, Count: count, ResourceType: "server"}
+	}
+}
+
+func (o *Openstack) Migrate(serverID string, hypervisorName string, blockMigration bool, diskOverCommit bool) error {
+	migrationOpts := migrate.LiveMigrateOpts{
+		Host:           &hypervisorName,
+		BlockMigration: &blockMigration,
+		DiskOverCommit: &diskOverCommit,
+	}
+
+	err := migrate.LiveMigrate(o.client, serverID, migrationOpts).ExtractErr()
+	return err
 }

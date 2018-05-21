@@ -1,8 +1,8 @@
 package rest
 
 import (
-	"github.com/foxdalas/nodeup/pkg/nodeup"
-	"github.com/foxdalas/nodeup/pkg/ssh"
+	"github.com/onetwotrip/nodeup/pkg/nodeup"
+	"github.com/onetwotrip/nodeup/pkg/ssh"
 	"github.com/labstack/echo"
 	"github.com/labstack/gommon/log"
 	"github.com/patrickmn/go-cache"

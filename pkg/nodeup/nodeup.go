@@ -1,10 +1,10 @@
 package nodeup
 
 import (
-	"github.com/foxdalas/nodeup/pkg/chef"
-	"github.com/foxdalas/nodeup/pkg/nodeup_const"
-	"github.com/foxdalas/nodeup/pkg/openstack"
-	"github.com/foxdalas/nodeup/pkg/ssh"
+	"github.com/onetwotrip/nodeup/pkg/chef"
+	"github.com/onetwotrip/nodeup/pkg/nodeup_const"
+	"github.com/onetwotrip/nodeup/pkg/openstack"
+	"github.com/onetwotrip/nodeup/pkg/ssh"
 	garbler "github.com/michaelbironneau/garbler/lib"
 	"os"
 	"os/signal"

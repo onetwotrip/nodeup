@@ -1,7 +1,7 @@
 package ssh
 
 import (
-	"github.com/foxdalas/nodeup/pkg/nodeup_const"
+	"github.com/onetwotrip/nodeup/pkg/nodeup_const"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 )

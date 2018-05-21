@@ -1,7 +1,7 @@
-package main
+wpackage main
 
 import (
-	"github.com/foxdalas/nodeup/pkg/cmd"
+	"github.com/onetwotrip/nodeup/pkg/cmd"
 )
 
 var AppVersion = "0.0.3"

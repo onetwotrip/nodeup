@@ -3,7 +3,7 @@ package openstack
 import (
 	"encoding/json"
 	"errors"
-	"github.com/foxdalas/nodeup/pkg/nodeup_const"
+	"github.com/onetwotrip/nodeup/pkg/nodeup_const"
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/hypervisors"

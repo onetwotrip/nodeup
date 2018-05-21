@@ -1,8 +1,8 @@
 # nodeup
 
-[![CircleCI](https://img.shields.io/circleci/project/github/foxdalas/nodeup.svg)](https://circleci.com/gh/foxdalas/nodeup)
-[![Docker Pulls](https://img.shields.io/docker/pulls/foxdalas/nodeup.svg?maxAge=604800)](https://hub.docker.com/r/foxdalas/nodeup/)
-[![Go Report Card](https://goreportcard.com/badge/github.com/foxdalas/nodeup)](https://goreportcard.com/report/github.com/foxdalas/nodeup)
+[![CircleCI](https://img.shields.io/circleci/project/github/onetwotrip/nodeup.svg)](https://circleci.com/gh/onetwotrip/nodeup)
+[![Docker Pulls](https://img.shields.io/docker/pulls/onetwotrip/nodeup.svg?maxAge=604800)](https://hub.docker.com/r/onetwotrip/nodeup/)
+[![Go Report Card](https://goreportcard.com/badge/github.com/onetwotrip/nodeup)](https://goreportcard.com/report/github.com/onetwotrip/nodeup)
 
 Server provisioning with Openstack API and Knife Bootstrap.
 
@@ -11,8 +11,8 @@ Server provisioning with Openstack API and Knife Bootstrap.
 
 ### Install
 ```
-go get -u github.com/foxdalas/nodeup/
-go install github.com/foxdalas/nodeup/
+go get -u github.com/onetwotrip/nodeup/
+go install github.com/onetwotrip/nodeup/
 ```
 
 ### Run
@@ -91,7 +91,7 @@ docker run --net=host --name $JOB_NAME-$BUILD_NUMBER --rm \
     -e CHEF_APIKEY=/chef.pem \
     -v $CHEF_APIKEY:/chef.pem \
     -v $CHEF_VALIDATION_PEM:/validation.pem \
-    foxdalas/nodeup:latest -name $Name -domain example.com -chefEnvironment $Environment -chefRole $Role -flavor $Flavor -count $Count -chefKeyPath  /chef.pem -chefValidationPath /validation.pem -jenkinsMode
+    onetwotrip/nodeup:latest -name $Name -domain example.com -chefEnvironment $Environment -chefRole $Role -flavor $Flavor -count $Count -chefKeyPath  /chef.pem -chefValidationPath /validation.pem -jenkinsMode
 ```
 
 #### Example

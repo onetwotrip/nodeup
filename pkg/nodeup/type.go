@@ -1,8 +1,8 @@
 package nodeup
 
 import (
-	"github.com/foxdalas/nodeup/pkg/chef"
-	"github.com/foxdalas/nodeup/pkg/openstack"
+	"github.com/onetwotrip/nodeup/pkg/chef"
+	"github.com/onetwotrip/nodeup/pkg/openstack"
 	log "github.com/sirupsen/logrus"
 	"sync"
 )

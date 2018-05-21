@@ -1,7 +1,7 @@
 package chef
 
 import (
-	"github.com/foxdalas/nodeup/pkg/nodeup_const"
+	"github.com/onetwotrip/nodeup/pkg/nodeup_const"
 	"github.com/go-chef/chef"
 	"github.com/sirupsen/logrus"
 )

@@ -263,5 +263,7 @@ func params(o *nodeup.NodeUP) error {
 		o.JenkinsLogURL = os.Getenv("JOB_URL") + "ws/logs/"
 	}
 
+	o.PackagesToInstallBeforeChef = os.Getenv("PACKAGES_TO_INSTALL")
+
 	return nil
 }

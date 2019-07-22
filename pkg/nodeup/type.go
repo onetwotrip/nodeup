@@ -41,6 +41,8 @@ type NodeUP struct {
 
 	SSHWaitRetry int
 
+	PackagesToInstallBeforeChef string
+
 	ChefVersion        string
 	ChefServerUrl      string
 	ChefClientName     string

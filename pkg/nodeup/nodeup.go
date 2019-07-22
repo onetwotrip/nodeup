@@ -367,7 +367,6 @@ func (o *NodeUP) runCommands(dir string, version string, environment string) []s
 	data := []string{
 		"sudo mv hosts /etc/hosts && sudo hostname -F /etc/hostname",
 		"sudo apt-get update",
-		"sudo apt-get -y install build-essential fakeroot dpkg-dev",
 		"sudo mkdir /etc/chef",
 		"wget -q https://omnitruck.chef.io/install.sh && sudo bash ./install.sh -v " + version + " && rm install.sh",
 		"sudo chmod 0600 " + dir + "/validation.pem",
@@ -375,6 +374,22 @@ func (o *NodeUP) runCommands(dir string, version string, environment string) []s
 		"sudo rm " + dir + "/client.rb && sudo rm " + dir + "/validation.pem && rm " + dir + "/bootstrap.json",
 		"sudo chef-client",
 	}
+
+	var packagesToInstall string
+
+	if len(o.PackagesToInstallBeforeChef) != 0 {
+		packagesToInstall = strings.Replace(o.PackagesToInstallBeforeChef, " ", "", -1)
+		packagesToInstall = strings.Replace(o.PackagesToInstallBeforeChef, ",", " ", -1)
+
+		tempData := make([]string, len(data)-2)
+		copy(tempData, data[2:])
+		data = append(data[:2], fmt.Sprintf("sudo apt-get -y install %s", packagesToInstall))
+
+		for _, command := range tempData {
+			data = append(data, command)
+		}
+	}
+
 	return data
 }
 

@@ -367,6 +367,7 @@ func (o *NodeUP) runCommands(dir string, version string, environment string) []s
 	data := []string{
 		"sudo mv hosts /etc/hosts && sudo hostname -F /etc/hostname",
 		"sudo apt-get update",
+		"sudo apt-get -y install build-essential fakeroot dpkg-dev",
 		"sudo mkdir /etc/chef",
 		"wget -q https://omnitruck.chef.io/install.sh && sudo bash ./install.sh -v " + version + " && rm install.sh",
 		"sudo chmod 0600 " + dir + "/validation.pem",

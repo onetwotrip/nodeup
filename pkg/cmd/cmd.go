@@ -134,7 +134,7 @@ func params(o *nodeup.NodeUP) error {
 
 	if !o.Migrate {
 		if o.ChefValidationPath == "" && len(os.Getenv("CHEF_VALIDATION_PEM")) == 0 {
-			return errors.New("Please provide -chefValidationPath or environment variable CHEF_VALIDATION_PEM")
+			return errors.New("please provide -chefValidationPath or environment variable CHEF_VALIDATION_PEM")
 		} else {
 			if len(os.Getenv("CHEF_VALIDATION_PEM")) > 0 {
 				o.ChefValidationPem = []byte(os.Getenv("CHEF_VALIDATION_PEM"))
@@ -146,7 +146,7 @@ func params(o *nodeup.NodeUP) error {
 			}
 		}
 		if o.ChefKeyPath == "" && len(os.Getenv("CHEF_KEY_PEM")) == 0 {
-			return errors.New("Please provide -chefKeyPath or environment variable CHEF_KEY_PEM")
+			return errors.New("please provide -chefKeyPath or environment variable CHEF_KEY_PEM")
 		} else {
 			if len(os.Getenv("CHEF_KEY_PEM")) > 0 {
 				o.ChefKeyPem = []byte(os.Getenv("CHEF_KEY_PEM"))
@@ -158,7 +158,7 @@ func params(o *nodeup.NodeUP) error {
 			}
 		}
 		if o.ChefServerUrl == "" && len(os.Getenv("CHEF_SERVER_URL")) == 0 {
-			return errors.New("Please provide -chefServerUrl or environment variable CHEF_SERVER_URL")
+			return errors.New("please provide -chefServerUrl or environment variable CHEF_SERVER_URL")
 		} else {
 			if len(os.Getenv("CHEF_SERVER_URL")) > 0 {
 				o.ChefServerUrl = os.Getenv("CHEF_SERVER_URL")
@@ -166,7 +166,7 @@ func params(o *nodeup.NodeUP) error {
 		}
 
 		if o.ChefClientName == "" && len(os.Getenv("CHEF_CLIENT_NAME")) == 0 {
-			return errors.New("Please provide -chefClientName or environment variable CHEF_CLIENT_NAME")
+			return errors.New("please provide -chefClientName or environment variable CHEF_CLIENT_NAME")
 		} else {
 			if len(os.Getenv("CHEF_CLIENT_NAME")) > 0 {
 				o.ChefClientName = os.Getenv("CHEF_CLIENT_NAME")
@@ -174,26 +174,26 @@ func params(o *nodeup.NodeUP) error {
 		}
 
 		if (o.ChefRole == "" && o.DeleteNodes == "") && !o.Daemon {
-			return errors.New("Please provide -chefRole string")
+			return errors.New("please provide -chefRole string")
 		}
 
 		if (o.ChefEnvironment == "" && o.DeleteNodes == "") && !o.Daemon {
-			return errors.New("Please provide -chefEnvironment string")
+			return errors.New("please provide -chefEnvironment string")
 		}
 		if (o.Name == "" && o.DeleteNodes == "") && !o.Daemon {
-			return errors.New("Please provide -name string")
+			return errors.New("please provide -name string")
 		}
 
 		if (o.Domain == "" && o.DeleteNodes == "") && !o.Daemon {
-			return errors.New("Please provide -domain string")
+			return errors.New("please provide -domain string")
 		}
 
 		if (o.Count == 0 && o.DeleteNodes == "") && !o.Daemon {
-			return errors.New("Please provide -count int")
+			return errors.New("please provide -count int")
 		}
 
 		if o.OSPublicKeyPath == "" && len(os.Getenv("OS_PUBLIC_KEY")) == 0 {
-			return errors.New("Please provide -publicKeyPath or environment variable OS_PUBLIC_KEY")
+			return errors.New("please provide -publicKeyPath or environment variable OS_PUBLIC_KEY")
 		} else {
 			if o.OSPublicKeyPath != "" {
 				dat, err := ioutil.ReadFile(o.OSPublicKeyPath)
@@ -207,56 +207,56 @@ func params(o *nodeup.NodeUP) error {
 		}
 
 		if (o.OSFlavorName == "" && o.DeleteNodes == "") && !o.Daemon {
-			return errors.New("Please provide -flavor string")
+			return errors.New("please provide -flavor string")
 		}
 
 		if (o.OSKeyName == "" && o.DeleteNodes == "") && !o.Daemon {
-			return errors.New("Please provide -keyname string")
+			return errors.New("please provide -keyname string")
 		}
 	} else {
 		if o.Hosts == "" {
-			return errors.New("Please provide -hosts string")
+			return errors.New("please provide -hosts string")
 		}
 
 		if o.Hypervisor == "" {
-			return errors.New("Please provide -hypervisor string")
+			return errors.New("please provide -hypervisor string")
 		}
 
 	}
 
 	o.OSAuthURL = os.Getenv("OS_AUTH_URL")
 	if len(o.OSAuthURL) == 0 {
-		return errors.New("Please provide OS_AUTH_URL")
+		return errors.New("please provide OS_AUTH_URL")
 	}
 
 	o.OSTenantName = os.Getenv("OS_TENANT_NAME")
 	if len(o.OSTenantName) == 0 {
-		return errors.New("Please provide OS_TENANT_NAME")
+		return errors.New("please provide OS_TENANT_NAME")
 	}
 
 	o.OSUsername = os.Getenv("OS_USERNAME")
 	if len(o.OSUsername) == 0 {
-		return errors.New("Please provide OS_USERNAME")
+		return errors.New("please provide OS_USERNAME")
 	}
 
 	o.OSPassword = os.Getenv("OS_PASSWORD")
 	if len(o.OSPassword) == 0 {
-		return errors.New("Please provide OS_PASSWORD")
+		return errors.New("please provide OS_PASSWORD")
 	}
 
 	o.OSPassword = os.Getenv("OS_PASSWORD")
 	if len(o.OSPassword) == 0 {
-		return errors.New("Please provide OS_PASSWORD")
+		return errors.New("please provide OS_PASSWORD")
 	}
 
 	o.OSProjectID = os.Getenv("OS_PROJECT_ID")
 	if len(o.OSProjectID) == 0 && o.Daemon {
-		return errors.New("Please provide OS_PROJECT_ID")
+		return errors.New("please provide OS_PROJECT_ID")
 	}
 
 	o.OSRegionName = os.Getenv("OS_REGION_NAME")
 	if len(o.OSRegionName) == 0 {
-		return errors.New("Please provide OS_REGION_NAME")
+		return errors.New("please provide OS_REGION_NAME")
 	}
 
 	if o.JenkinsMode {

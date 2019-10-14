@@ -82,6 +82,7 @@ docker run --net=host --name $JOB_NAME-$BUILD_NUMBER --rm \
     -e OS_USERNAME=$OS_USERNAME \
     -e OS_PASSWORD=$OS_PASSWORD \
     -e OS_REGION_NAME=$OS_REGION_NAME \
+    -e OS_DOMAIN_ID=default \
     -e OS_PUBLIC_KEY="$OS_PUBLIC_KEY" \
     -e CHEF_SERVER_URL=$CHEF_SERVER_URL \
     -e CHEF_CLIENT_NAME=$CHEF_CLIENT_NAME \
@@ -107,6 +108,7 @@ export OS_TENANT_NAME=
 export OS_PASSWORD=
 export OS_USERNAME=
 export OS_REGION_NAME=
+export OS_DOMAIN_ID=default
 ```
 
 ### Flavors

@@ -3,7 +3,6 @@ package openstack
 import (
 	"encoding/json"
 	"errors"
-	"github.com/onetwotrip/nodeup/pkg/nodeup_const"
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/hypervisors"
@@ -12,6 +11,7 @@ import (
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/networks"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/schedulerhints"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/startstop"
+	"github.com/onetwotrip/nodeup/pkg/nodeup_const"
 
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/flavors"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/images"
@@ -41,10 +41,15 @@ func New(nodeup nodeup.NodeUP, key string, keyName string, flavor string) *Opens
 	provider, err := openstack.AuthenticatedClient(opts)
 	o.assertError(err, "AUTH Client")
 
+	o.client, err = openstack.NewIdentityV3(provider, gophercloud.EndpointOpts{
+		Region: os.Getenv("OS_REGION_NAME"),
+	})
+	o.assertError(err, "IDENTITY_v3")
+
 	o.client, err = openstack.NewComputeV2(provider, gophercloud.EndpointOpts{
 		Region: os.Getenv("OS_REGION_NAME"),
 	})
-	o.assertError(err, "Compute")
+	o.assertError(err, "COMPUTE")
 
 	return o
 }
@@ -289,7 +294,7 @@ func (o *Openstack) GetHypervisors() ([]hypervisors.Hypervisor, error) {
 	return allHypervisors, nil
 }
 
-func (o *Openstack) GetHypervisorInfo(id int) (*hypervisors.Hypervisor, error) {
+func (o *Openstack) GetHypervisorInfo(id string) (*hypervisors.Hypervisor, error) {
 	hypervisor, err := hypervisors.Get(o.client, id).Extract()
 	if err != nil {
 		o.Log().Error(err)

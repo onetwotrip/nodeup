@@ -1,11 +1,11 @@
 package nodeup
 
 import (
+	garbler "github.com/michaelbironneau/garbler/lib"
 	"github.com/onetwotrip/nodeup/pkg/chef"
 	"github.com/onetwotrip/nodeup/pkg/nodeup_const"
 	"github.com/onetwotrip/nodeup/pkg/openstack"
 	"github.com/onetwotrip/nodeup/pkg/ssh"
-	garbler "github.com/michaelbironneau/garbler/lib"
 	"os"
 	"os/signal"
 	"strings"
@@ -309,7 +309,7 @@ func (o *NodeUP) isWildcard(string string) bool {
 
 func (o *NodeUP) assertBootstrap(openstack *openstack.Openstack, chefClient *chef.ChefClient, id string, hostname string, err error) (exit bool) {
 	if o.IgnoreFail {
-		o.Log().Warnf("Host %s bootstrap is fail. Skied", hostname)
+		o.Log().Warnf("Host %s bootstrap is fail. Skipped", hostname)
 		return false
 	}
 

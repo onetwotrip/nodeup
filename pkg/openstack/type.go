@@ -1,8 +1,8 @@
 package openstack
 
 import (
-	"github.com/onetwotrip/nodeup/pkg/nodeup_const"
 	"github.com/gophercloud/gophercloud"
+	"github.com/onetwotrip/nodeup/pkg/nodeup_const"
 	"github.com/patrickmn/go-cache"
 	"github.com/sirupsen/logrus"
 

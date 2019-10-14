@@ -1,10 +1,10 @@
 package rest
 
 import (
-	"github.com/onetwotrip/nodeup/pkg/nodeup"
-	"github.com/onetwotrip/nodeup/pkg/ssh"
 	"github.com/labstack/echo"
 	"github.com/labstack/gommon/log"
+	"github.com/onetwotrip/nodeup/pkg/nodeup"
+	"github.com/onetwotrip/nodeup/pkg/ssh"
 	"github.com/patrickmn/go-cache"
 	"net/http"
 	"os"
@@ -88,11 +88,7 @@ func (e *Echo) getHypervisors(c echo.Context) error {
 
 // Get Hypervisor Information
 func (e *Echo) getHypervisorInfo(c echo.Context) error {
-	intID, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, e.simpleMessage("", "ID is not valid"))
-	}
-	hypervisorInfo, err := e.nodeup.Openstack.GetHypervisorInfo(intID)
+	hypervisorInfo, err := e.nodeup.Openstack.GetHypervisorInfo(c.Param("id"))
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, e.simpleMessage("", "Can't get hypervisor info"))
 	}

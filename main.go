@@ -1,26 +1,11 @@
-wpackage main
+package main
 
 import (
 	"github.com/onetwotrip/nodeup/pkg/cmd"
 )
 
-var AppVersion = "0.0.3"
-var AppGitCommit = ""
-var AppGitState = ""
-
-func Version() string {
-	version := AppVersion
-	if len(AppGitCommit) > 0 {
-		version += "-"
-		version += AppGitCommit[0:8]
-	}
-	if len(AppGitState) > 0 && AppGitState != "clean" {
-		version += "-"
-		version += AppGitState
-	}
-	return version
-}
+var AppVersion = "0.0.0"
 
 func main() {
-	cmd.Run(Version())
+	cmd.Run(AppVersion)
 }

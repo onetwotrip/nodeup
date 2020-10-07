@@ -69,6 +69,7 @@ type NodeUP struct {
 
 	//Migration
 	Migrate    bool
+	Rebalance  bool
 	Hosts      string
 	Hypervisor string
 

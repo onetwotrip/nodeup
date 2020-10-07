@@ -7,6 +7,7 @@ import (
 	"github.com/onetwotrip/nodeup/pkg/migrate"
 	"github.com/onetwotrip/nodeup/pkg/nodeup"
 	"github.com/onetwotrip/nodeup/pkg/openstack"
+	"github.com/onetwotrip/nodeup/pkg/rebalance"
 	"github.com/onetwotrip/nodeup/pkg/rest"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
@@ -36,7 +37,12 @@ func Run(version string) {
 		m.Init()
 	}
 
-	if !o.Daemon && !o.Migrate {
+	if o.Rebalance {
+		r := rebalance.New(*o)
+		r.Init()
+	}
+
+	if !o.Daemon && !o.Migrate && !o.Rebalance {
 		o.Init()
 	}
 }
@@ -77,8 +83,16 @@ func makeLog() *log.Entry {
 func createConnect(o *nodeup.NodeUP) {
 	var err error
 
+	enableChef := true
+	if o.Migrate {
+		enableChef = false
+	}
+	if o.Rebalance {
+		enableChef = false
+	}
+
 	o.Openstack = openstack.New(o, o.OSPublicKey, o.OSKeyName, o.OSFlavorName)
-	if !o.Migrate {
+	if enableChef {
 		o.Chef, err = chef.NewChefClient(o, o.ChefClientName, o.ChefKeyPem, o.ChefServerUrl)
 		if err != nil {
 			o.Log().Fatal(err)
@@ -117,7 +131,7 @@ func params(o *nodeup.NodeUP) error {
 	flag.StringVar(&o.SSHUser, "sshUser", "cloud-user", "SSH Username")
 	flag.StringVar(&o.SSHUploadDir, "sshUploadDir", "/home/"+o.SSHUser, "SSH Upload directory")
 	flag.StringVar(&o.DefineNetworks, "networks", "", "Define networks like internet_XX.XX.XX.XX/XX,local_private,global_private")
-	flag.StringVar(&o.WebSSHUser, "web.sshUser", "cloud-user", "SSH User for Web Managment")
+	flag.StringVar(&o.WebSSHUser, "web.sshUser", "cloud-user", "SSH User for Web Management")
 
 	flag.BoolVar(&o.JenkinsMode, "jenkinsMode", false, "Jenkins capability mode")
 
@@ -125,6 +139,7 @@ func params(o *nodeup.NodeUP) error {
 	flag.BoolVar(&o.Daemon, "daemon", false, "Use HTTP daemon")
 
 	flag.BoolVar(&o.Migrate, "migrate", false, "Migrate mode")
+	flag.BoolVar(&o.Rebalance, "rebalance", false, "Rebalance mode")
 	flag.StringVar(&o.Hosts, "hosts", "", "Hosts for migrate")
 	flag.StringVar(&o.Hypervisor, "hypervisor", "", "Migrate to hypervisor")
 
@@ -132,7 +147,15 @@ func params(o *nodeup.NodeUP) error {
 
 	o.Gateway = os.Getenv("GATEWAY")
 
-	if !o.Migrate {
+	enableChef := true
+	if o.Migrate {
+		enableChef = false
+	}
+	if o.Rebalance {
+		enableChef = false
+	}
+
+	if enableChef {
 		if o.ChefValidationPath == "" && len(os.Getenv("CHEF_VALIDATION_PEM")) == 0 {
 			return errors.New("please provide -chefValidationPath or environment variable CHEF_VALIDATION_PEM")
 		} else {
@@ -214,12 +237,14 @@ func params(o *nodeup.NodeUP) error {
 			return errors.New("please provide -keyname string")
 		}
 	} else {
-		if o.Hosts == "" {
-			return errors.New("please provide -hosts string")
-		}
+		if !o.Rebalance {
+			if o.Hosts == "" {
+				return errors.New("Please provide -hosts string")
+			}
 
-		if o.Hypervisor == "" {
-			return errors.New("please provide -hypervisor string")
+			if o.Hypervisor == "" {
+				return errors.New("Please provide -hypervisor string")
+			}
 		}
 
 	}

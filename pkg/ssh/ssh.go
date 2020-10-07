@@ -103,7 +103,7 @@ func (s *Ssh) RunCommandPipe(command string, outfile *os.File) error {
 
 	s.Log().Debugf("Running %s", command)
 	if err := session.Run(command); err != nil {
-		s.Log().Errorf("chef-client error: %s", err)
+		s.Log().Errorf("\"%s\" error: %s", command, err)
 		return err
 	}
 

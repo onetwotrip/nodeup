@@ -11,11 +11,16 @@ import (
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/networks"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/schedulerhints"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/startstop"
+
+	util_flavors "github.com/gophercloud/utils/openstack/compute/v2/flavors"
+	util_images "github.com/gophercloud/utils/openstack/compute/v2/images"
+	util_servers "github.com/gophercloud/utils/openstack/compute/v2/servers"
+
 	"github.com/onetwotrip/nodeup/pkg/nodeup_const"
 
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/flavors"
-	"github.com/gophercloud/gophercloud/openstack/compute/v2/images"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/servers"
+
 	"github.com/patrickmn/go-cache"
 	"os"
 	"sort"
@@ -57,7 +62,7 @@ func New(nodeup nodeup.NodeUP, key string, keyName string, flavor string) *Opens
 
 func (o *Openstack) getFlavorByName() string {
 	o.Log().Debugf("Searching FlavorID for Flavor name: %s", o.flavorName)
-	flavorID, err := flavors.IDFromName(o.client, o.flavorName)
+	flavorID, err := util_flavors.IDFromName(o.client, o.flavorName)
 	o.assertError(err, "Flavor")
 
 	o.Log().Debugf("Found flavor id: %s", flavorID)
@@ -65,7 +70,7 @@ func (o *Openstack) getFlavorByName() string {
 }
 
 func (o *Openstack) getImageByName() string {
-	imageID, err := images.IDFromName(o.client, "Ubuntu 16.04-server (64 bit)")
+	imageID, err := util_images.IDFromName(o.client, "Ubuntu 16.04-server (64 bit)")
 	o.assertError(err, "Error image")
 
 	return imageID
@@ -396,7 +401,7 @@ func (o *Openstack) GetHypervisorWithSensitiveCriteria(criteria string) hypervis
 }
 
 func (o *Openstack) isServerExist(name string) bool {
-	_, err := servers.IDFromName(o.client, name)
+	_, err := util_servers.IDFromName(o.client, name)
 	if err != nil {
 		o.Log().Debug(err)
 		return false

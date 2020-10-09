@@ -2,6 +2,7 @@ package ssh
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/onetwotrip/nodeup/pkg/nodeup_const"
 	"github.com/pkg/sftp"
 	"github.com/sirupsen/logrus"
@@ -96,18 +97,22 @@ func (s *Ssh) RunCommandPipe(command string, outfile *os.File) error {
 	}
 	defer session.Close()
 
-	s.Log().Debugf("Writing bootstrap output to file %s", outfile.Name())
+	logFile := io.MultiWriter(outfile)
 
-	session.Stdout = io.MultiWriter(outfile)
-	session.Stderr = session.Stdout
+	session.Stdout = logFile
+	session.Stderr = logFile
 
 	s.Log().Debugf("Running %s", command)
+	_, err = outfile.WriteString(fmt.Sprintf("Running %s", command))
+
 	if err := session.Run(command); err != nil {
-		s.Log().Errorf("chef-client error: %s", err)
+		s.Log().Errorf("\"%s\" failed: %s", command, err)
+		_, err = outfile.WriteString(fmt.Sprintf("\"%s\" failed: %s", command, err))
 		return err
 	}
 
 	s.Log().Debugf("Finished %s", command)
+	_, err = outfile.WriteString(fmt.Sprintf("Finished %s", command))
 
 	return nil
 }

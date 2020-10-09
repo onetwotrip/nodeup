@@ -137,13 +137,13 @@ func (o *NodeUP) bootstrapHost(s *openstack.Openstack, c *chef.ChefClient, hostn
 
 		//Create SSH connection
 		sshClient, err := ssh.New(o, ip, "cloud-user")
-		if o.assertBootstrap(s, c, oHost.ID, hostname, err) {
+		if o.assertBootstrap(s, c, oHost.ID, hostname, outFile, err) {
 			return false
 		}
 
 		//Create Bootstrap data
 		chefData, err := chef.New(o, hostname, o.Domain, o.ChefServerUrl, o.ChefValidationPem, o.ChefValidationPath, []string{"role[" + o.ChefRole + "]"})
-		if o.assertBootstrap(s, c, oHost.ID, hostname, err) {
+		if o.assertBootstrap(s, c, oHost.ID, hostname, outFile, err) {
 			return false
 		}
 
@@ -151,19 +151,21 @@ func (o *NodeUP) bootstrapHost(s *openstack.Openstack, c *chef.ChefClient, hostn
 		//Upload files via ssh
 		for fileName, fileData := range o.transferFiles(chefData) {
 			err = sshClient.TransferFile(fileData, fileName, o.SSHUploadDir)
-			if o.assertBootstrap(s, c, oHost.ID, hostname, err) {
+			if o.assertBootstrap(s, c, oHost.ID, hostname, outFile, err) {
 				return false
 			}
 		}
 
+		s.Log().Debugf("Writing bootstrap output to file %s", outFile.Name())
+
 		if o.UsePrivateNetwork {
 			err = sshClient.TransferFile(o.createInterfacesFile(o.Gateway), "interfaces", o.SSHUploadDir)
-			if o.assertBootstrap(s, c, oHost.ID, hostname, err) {
+			if o.assertBootstrap(s, c, oHost.ID, hostname, outFile, err) {
 				return false
 			}
 			for _, command := range o.configureDefaultGateway() {
 				err = sshClient.RunCommandPipe(command, outFile)
-				if o.assertBootstrap(s, c, oHost.ID, hostname, err) {
+				if o.assertBootstrap(s, c, oHost.ID, hostname, outFile, err) {
 					return false
 				}
 			}
@@ -172,7 +174,7 @@ func (o *NodeUP) bootstrapHost(s *openstack.Openstack, c *chef.ChefClient, hostn
 		//Run command via ssh
 		for _, command := range o.runCommands(o.SSHUploadDir, o.ChefVersion, o.ChefEnvironment) {
 			err = sshClient.RunCommandPipe(command, outFile)
-			if o.assertBootstrap(s, c, oHost.ID, hostname, err) {
+			if o.assertBootstrap(s, c, oHost.ID, hostname, outFile, err) {
 				return false
 			}
 		}
@@ -307,7 +309,9 @@ func (o *NodeUP) isWildcard(string string) bool {
 	}
 }
 
-func (o *NodeUP) assertBootstrap(openstack *openstack.Openstack, chefClient *chef.ChefClient, id string, hostname string, err error) (exit bool) {
+func (o *NodeUP) assertBootstrap(openstack *openstack.Openstack, chefClient *chef.ChefClient, id string, hostname string, outfile *os.File, err error) (exit bool) {
+	_ = outfile.Close()
+
 	if o.IgnoreFail {
 		o.Log().Warnf("Host %s bootstrap is fail. Skipped", hostname)
 		return false

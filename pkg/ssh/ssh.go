@@ -114,6 +114,8 @@ func (s *Ssh) RunCommandPipe(command string, outfile *os.File) error {
 	s.Log().Debugf("Finished %s", command)
 	_, err = outfile.WriteString(fmt.Sprintf("Finished %s", command))
 
+	_ = outfile.Sync()
+
 	return nil
 }
 

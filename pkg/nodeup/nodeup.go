@@ -310,7 +310,7 @@ func (o *NodeUP) isWildcard(string string) bool {
 }
 
 func (o *NodeUP) assertBootstrap(openstack *openstack.Openstack, chefClient *chef.ChefClient, id string, hostname string, outfile *os.File, err error) (exit bool) {
-	_ = outfile.Close()
+	_ = outfile.Sync()
 
 	if o.IgnoreFail {
 		o.Log().Warnf("Host %s bootstrap is fail. Skipped", hostname)

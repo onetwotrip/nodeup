@@ -99,13 +99,13 @@ func (s *Ssh) RunCommandPipe(command string, outfile *os.File) error {
 
 	logFile := io.MultiWriter(outfile)
 
-	session.Stdout = logFile
-	session.Stderr = logFile
-
 	s.Log().Debugf("Running %s", command)
 	_, err = outfile.WriteString(fmt.Sprintf("Running %s", command))
 
-	if err := session.Run(command); err != nil {
+	output, err := session.CombinedOutput(command)
+	_, err = logFile.Write(output)
+
+	if err != nil {
 		s.Log().Errorf("\"%s\" failed: %s", command, err)
 		_, err = outfile.WriteString(fmt.Sprintf("\"%s\" failed: %s", command, err))
 		return err

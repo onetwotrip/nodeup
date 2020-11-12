@@ -49,7 +49,10 @@ func (o *NodeUP) Init() {
 
 	if _, err := os.Stat(o.LogDir); os.IsNotExist(err) {
 		o.Log().Debugf("Creating logs directory in %s", o.LogDir)
-		os.Mkdir(o.LogDir, 0775)
+		err = os.Mkdir(o.LogDir, 0775)
+		if err != nil {
+			o.Log().Debugf("Couldn't create a logs directory: %s", err)
+		}
 	}
 
 	if o.Count > 1 && !o.isWildcard(o.Name) {
@@ -108,7 +111,7 @@ func (o *NodeUP) bootstrapHost(s *openstack.Openstack, c *chef.ChefClient, hostn
 	logFile := o.LogDir + "/" + hostname + ".log"
 	outFile, err := os.Create(logFile)
 	if err != nil {
-		return false
+		log.Debugf("Couldn't create a logFile for %s: %s", hostname, err)
 	}
 	if o.JenkinsMode {
 		o.Log().Infof("Processing log %s%s.log", o.JenkinsLogURL, hostname)

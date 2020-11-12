@@ -7,7 +7,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/agent"
-	"io"
 	"net"
 	"os"
 	"os/exec"
@@ -96,15 +95,18 @@ func (s *Ssh) RunCommandPipe(command string, outfile *os.File) error {
 	}
 	defer session.Close()
 
-	s.Log().Debugf("Writing bootstrap output to file %s", outfile.Name())
-
-	session.Stdout = io.MultiWriter(outfile)
-	session.Stderr = session.Stdout
-
 	s.Log().Debugf("Running %s", command)
-	if err := session.Run(command); err != nil {
+	output, err := session.CombinedOutput(command)
+	if err != nil {
 		s.Log().Errorf("\"%s\" error: %s", command, err)
 		return err
+	}
+
+	written, err := outfile.Write(output)
+	if err != nil {
+		s.Log().Debugf("Couldn't write to a log file (%s): %s", outfile.Name(), err)
+	} else {
+		s.Log().Debugf("Wrote %d bytes to %s", written, outfile.Name())
 	}
 
 	s.Log().Debugf("Finished %s", command)

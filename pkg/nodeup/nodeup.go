@@ -369,7 +369,6 @@ func (o *NodeUP) transferFiles(chef *chef.Chef) map[string][]byte {
 func (o *NodeUP) runCommands(dir string, version string, environment string) []string {
 	data := []string{
 		"sudo mv hosts /etc/hosts && sudo hostname -F /etc/hostname",
-		"sudo rm -fr /var/lib/apt/lists/lock && sudo apt-get update",
 		"sudo mkdir /etc/chef",
 		"wget -q https://omnitruck.chef.io/install.sh && sudo bash ./install.sh -v " + version + " && rm install.sh",
 		"sudo chmod 0600 " + dir + "/validation.pem",

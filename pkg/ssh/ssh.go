@@ -1,7 +1,6 @@
 package ssh
 
 import (
-	"bytes"
 	"github.com/onetwotrip/nodeup/pkg/nodeup_const"
 	"github.com/pkg/sftp"
 	"github.com/sirupsen/logrus"
@@ -66,26 +65,6 @@ func (s *Ssh) sshSession() (*ssh.Session, error) {
 		return session, err
 	}
 	return session, err
-}
-
-func (s *Ssh) RunCommand(command string) error {
-	session, err := s.sshSession()
-	if err != nil {
-		s.Log().Errorf("session error: %s", err)
-	}
-	defer session.Close()
-
-	var b bytes.Buffer
-	session.Stdout = &b
-	s.Log().Debugf("Running %s", command)
-	if err := session.Run(command); err != nil {
-		s.Log().Errorf("command error: %s", err)
-		return err
-	}
-
-	s.Log().Debugf("Finished %s", command)
-
-	return nil
 }
 
 func (s *Ssh) RunCommandPipe(command string, outfile *os.File) error {

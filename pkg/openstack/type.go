@@ -14,6 +14,7 @@ type Openstack struct {
 	nodeup     nodeup.NodeUP
 	client     *gophercloud.ServiceClient
 	flavorName string
+	imageName  string
 	key        string
 	keyName    string
 	cache      *cache.Cache

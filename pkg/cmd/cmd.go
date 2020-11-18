@@ -91,7 +91,7 @@ func createConnect(o *nodeup.NodeUP) {
 		enableChef = false
 	}
 
-	o.Openstack = openstack.New(o, o.OSPublicKey, o.OSKeyName, o.OSFlavorName)
+	o.Openstack = openstack.New(o, o.OSPublicKey, o.OSKeyName, o.OSFlavorName, o.Image)
 	if enableChef {
 		o.Chef, err = chef.NewChefClient(o, o.ChefClientName, o.ChefKeyPem, o.ChefServerUrl)
 		if err != nil {
@@ -110,6 +110,7 @@ func params(o *nodeup.NodeUP) error {
 	flag.StringVar(&o.Name, "name", "", "Hostname or  mask like role-environment-* or full-hostname-name if -count 1")
 	flag.StringVar(&o.Domain, "domain", "", "Domain name like hosts.example.com")
 	flag.StringVar(&o.AvailabilityZone, "availability-zone", "", "Select availability-zone.")
+	flag.StringVar(&o.Image, "image", "Ubuntu 16.04-server (64 bit)", "OS image which will be deployed to a WM(s).")
 	flag.StringVar(&o.LogDir, "logDir", "logs", "Logs directory")
 	flag.IntVar(&o.Count, "count", 1, "Deployment hosts count")
 	flag.StringVar(&o.OSFlavorName, "flavor", "", "Openstack flavor name")

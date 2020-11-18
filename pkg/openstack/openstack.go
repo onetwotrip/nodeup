@@ -29,11 +29,12 @@ import (
 	"time"
 )
 
-func New(nodeup nodeup.NodeUP, key string, keyName string, flavor string) *Openstack {
+func New(nodeup nodeup.NodeUP, key string, keyName string, flavor string, image string) *Openstack {
 
 	o := &Openstack{
 		nodeup:     nodeup,
 		flavorName: flavor,
+		imageName:  image,
 		key:        key,
 		keyName:    keyName,
 		cache:      cache.New(5*time.Minute, 10*time.Minute),
@@ -70,7 +71,7 @@ func (o *Openstack) getFlavorByName() string {
 }
 
 func (o *Openstack) getImageByName() string {
-	imageID, err := util_images.IDFromName(o.client, "Ubuntu 16.04-server (64 bit)")
+	imageID, err := util_images.IDFromName(o.client, o.imageName)
 	o.assertError(err, "Error image")
 
 	return imageID

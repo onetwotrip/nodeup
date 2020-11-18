@@ -16,6 +16,7 @@ type NodeUP struct {
 
 	Name              string
 	Domain            string
+	Image             string
 	User              string
 	Count             int
 	PrefixCharts      int

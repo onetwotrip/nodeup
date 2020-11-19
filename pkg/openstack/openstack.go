@@ -71,9 +71,11 @@ func (o *Openstack) getFlavorByName() string {
 }
 
 func (o *Openstack) getImageByName() string {
+	o.Log().Debugf("Searching ImageID for image: %s", o.imageName)
 	imageID, err := util_images.IDFromName(o.client, o.imageName)
 	o.assertError(err, "Error image")
 
+	o.Log().Debugf("Found image id: %s", imageID)
 	return imageID
 }
 

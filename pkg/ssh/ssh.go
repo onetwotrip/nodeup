@@ -97,12 +97,6 @@ func (s *Ssh) TransferFile(data []byte, name string, path string) error {
 	sftp, err := sftp.NewClient(s.client)
 	s.assertError(err)
 
-	w := sftp.Walk(path)
-	for w.Step() {
-		if w.Err() != nil {
-			return err
-		}
-	}
 	f, err := sftp.Create(name)
 	s.assertError(err)
 

@@ -5,6 +5,7 @@ import (
 	"github.com/onetwotrip/nodeup/pkg/openstack"
 	log "github.com/sirupsen/logrus"
 	"sync"
+	"time"
 )
 
 type NodeUP struct {
@@ -39,6 +40,7 @@ type NodeUP struct {
 	OSGroupID       string
 	OSProjectID     string
 	OSRegionName    string
+	OSRetryTimeout  time.Duration
 
 	SSHWaitRetry int
 

@@ -160,7 +160,7 @@ func (o *Openstack) createAdminKey() bool {
 	return true
 }
 
-func (o *Openstack) CreateSever(hostname string, timeout time.Duration, group string, networks string, availabilityZone string) (*servers.Server, error) {
+func (o *Openstack) CreateSever(hostname string, timeout int, group string, networks string, availabilityZone string) (*servers.Server, error) {
 
 	if o.isServerExist(hostname) {
 		o.Log().Fatalf("Server %s already exists", hostname)
@@ -235,7 +235,7 @@ func (o *Openstack) CreateSever(hostname string, timeout time.Duration, group st
 	i := 0
 	status := ""
 	for {
-		time.Sleep(timeout) //Waiting before retry getting openstack host status
+		time.Sleep(time.Duration(timeout)*time.Second) //Waiting before retry getting openstack host status
 		info, err = o.GetServer(server.ID)
 		if err != nil {
 			o.Log().Error(err)

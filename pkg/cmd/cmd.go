@@ -14,7 +14,6 @@ import (
 	"os"
 	"os/user"
 	"strings"
-	"time"
 )
 
 func Run(version string) {
@@ -124,7 +123,7 @@ func params(o *nodeup.NodeUP) error {
 	flag.BoolVar(&o.IgnoreFail, "ignoreFail", false, "Don't delete host after fail")
 	flag.IntVar(&o.Concurrency, "concurrency", 5, "Concurrency bootstrap")
 	flag.IntVar(&o.PrefixCharts, "prefixCharts", 5, "Host mask random prefix")
-	flag.DurationVar(&o.OSRetryTimeout, "osRetryTimeout", 5*time.Second, "Timeout (in seconds) for waiting server getting the ACTIVE state")
+	flag.IntVar(&o.OSRetryTimeout, "osRetryTimeout", 5, "Timeout (in seconds) for waiting server getting the ACTIVE state")
 	flag.IntVar(&o.SSHWaitRetry, "sshWaitRetry", 20, "SSH Retry count")
 	flag.StringVar(&o.ChefVersion, "chefVersion", "12.20.3", "chef-client version")
 	flag.StringVar(&o.ChefServerUrl, "chefServerUrl", "", "Chef Server URL")

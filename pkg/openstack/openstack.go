@@ -13,7 +13,7 @@ import (
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/startstop"
 
 	util_flavors "github.com/gophercloud/utils/openstack/compute/v2/flavors"
-	util_images "github.com/gophercloud/utils/openstack/compute/v2/images"
+	"github.com/gophercloud/utils/openstack/imageservice/v2/images"
 	util_servers "github.com/gophercloud/utils/openstack/compute/v2/servers"
 
 	"github.com/onetwotrip/nodeup/pkg/nodeup_const"
@@ -72,7 +72,7 @@ func (o *Openstack) getFlavorByName() string {
 
 func (o *Openstack) getImageByName() string {
 	o.Log().Debugf("Searching ImageID for image: %s", o.imageName)
-	imageID, err := util_images.IDFromName(o.client, o.imageName)
+	imageID, err := images.IDFromName(o.client, o.imageName)
 	o.assertError(err, "Error image")
 
 	o.Log().Debugf("Found image id: %s", imageID)

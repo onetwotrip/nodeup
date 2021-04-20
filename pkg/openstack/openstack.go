@@ -160,7 +160,7 @@ func (o *Openstack) createAdminKey() bool {
 	return true
 }
 
-func (o *Openstack) CreateSever(hostname string, timeout int, group string, networks string, availabilityZone string) (*servers.Server, error) {
+func (o *Openstack) CreateServer(hostname string, timeout int, group string, networks string, availabilityZone string) (*servers.Server, error) {
 
 	if o.isServerExist(hostname) {
 		o.Log().Fatalf("Server %s already exists", hostname)

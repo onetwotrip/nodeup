@@ -103,7 +103,7 @@ func (o *NodeUP) Init() {
 func (o *NodeUP) bootstrapHost(s *openstack.Openstack, c *chef.ChefClient, hostname string, wg *sync.WaitGroup) bool {
 	defer wg.Done()
 
-	oHost, err := s.CreateSever(hostname, o.OSRetryTimeout, o.OSGroupID, o.DefineNetworks, o.AvailabilityZone)
+	oHost, err := s.CreateServer(hostname, o.OSRetryTimeout, o.OSGroupID, o.DefineNetworks, o.AvailabilityZone)
 	if err != nil {
 		return false
 	}

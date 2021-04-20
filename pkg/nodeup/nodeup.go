@@ -160,7 +160,7 @@ func (o *NodeUP) bootstrapHost(s *openstack.Openstack, c *chef.ChefClient, hostn
 		}
 
 		if o.UsePrivateNetwork {
-			err = sshClient.TransferFile(o.createInterfacesFile(o.Gateway), "interfaces", o.SSHUploadDir)
+			err = sshClient.TransferFile(o.createInterfacesFile(o.Gateway), "00-sc-network.yaml", o.SSHUploadDir)
 			if o.assertBootstrap(s, c, oHost.ID, hostname, err) {
 				return false
 			}
@@ -350,8 +350,9 @@ func (o *NodeUP) deleteHost(openstack *openstack.Openstack, chefClient *chef.Che
 
 func (o *NodeUP) configureDefaultGateway() []string {
 	data := []string{
-		"sudo mv interfaces /etc/network/",
-		fmt.Sprintf("sudo route add default gw %s", o.Gateway),
+		"sudo mv 00-sc-network.yaml /etc/netplan/",
+		"sudo netplan generate",
+		"sudo netplan apply",
 	}
 	return data
 }
@@ -446,22 +447,21 @@ func (o *NodeUP) createInterfacesFile(gateway string) []byte {
 	}
 
 	var buf bytes.Buffer
-	t := template.New("interfaces")
-	t, err := t.Parse(`
-auto lo
-iface lo inet loopback
-
-allow-hotplug ens3
-iface ens3 inet dhcp
-  post-up route add default gw {{ .Gateway }}
-
-allow-hotplug ens4
-iface ens4 inet dhcp
-
-allow-hotplug ens5
-iface ens5 inet dhcp
-
-source /etc/network/interfaces.d/*`)
+	t := template.New("00-sc-network.yaml")
+	t, err := t.Parse(`network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    ens3:
+      dhcp4: true
+      routes:
+      - to: 0.0.0.0/0
+        via: {{ .Gateway }}
+        on-link: true
+    ens4:
+      dhcp4: true
+    ens5:
+      dhcp4: true`)
 	if err != nil {
 		o.Log().Fatal(err)
 	}

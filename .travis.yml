@@ -8,6 +8,9 @@ services:
 before_install:
   - docker build --build-arg appVersion=${TRAVIS_TAG} --no-cache -t ${REGISTRY_URL}/nodeup:${TRAVIS_TAG} .
 
+install:
+  - echo 'skipping install'
+
 script:
   - echo "$REGISTRY_P" | docker login -u "$REGISTRY_U" --password-stdin "$REGISTRY_URL"
   - docker push ${REGISTRY_URL}/nodeup:${TRAVIS_TAG}
